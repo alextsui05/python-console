@@ -4,6 +4,6 @@ project( PythonInterpreter )
 find_package( PythonLibs REQUIRED )
 include_directories( ${PYTHON_INCLUDE_DIRS} )
 
-add_executable( test test.cpp )
+add_executable( test test.cpp Interpreter.cpp )
 
 target_link_libraries( test ${PYTHON_LIBRARIES} )

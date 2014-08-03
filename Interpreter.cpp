@@ -25,6 +25,7 @@ Interpreter::Interpreter( )
 Interpreter::~Interpreter( )
 {
     PyEval_AcquireThread( m_threadState );
+    std::cout << "delete interpreter\n";
 
     Py_EndInterpreter( m_threadState );
     PyEval_ReleaseLock( );
@@ -50,6 +51,7 @@ Interpreter::test( )
     Py_XDECREF (py_result);
 
     std::cout << GetResultString( m_threadState );
+    GetResultString( m_threadState ) = "";
 
     PyEval_ReleaseThread( m_threadState );
 }
@@ -58,9 +60,11 @@ std::string
 Interpreter::interpret( const std::string& command, int* errorCode )
 {
     PyEval_AcquireThread( m_threadState );
+    *errorCode = 0;
 
     PyObject* py_result;
     PyObject* dum;
+    std::cout << "interpreting (" << command << ")\n";
     py_result = Py_CompileString(command.c_str(), "<stdin>", Py_single_input);
     if ( py_result == 0 )
     {
@@ -71,6 +75,11 @@ Interpreter::interpret( const std::string& command, int* errorCode )
     dum = PyEval_EvalCode ((PyCodeObject *)py_result, glb, loc);
     Py_XDECREF (dum);
     Py_XDECREF (py_result);
+    if ( PyErr_Occurred( ) )
+    {
+        *errorCode = 1;
+        PyErr_Print( );
+    }
 
     std::string res = GetResultString( m_threadState );
     GetResultString( m_threadState ) = "";

@@ -1,16 +1,24 @@
 #include "Console.h"
+#include "Interpreter.h"
 
 #include <iostream>
 #include <QKeyEvent>
 
-namespace atsui {
-
 const QString Console::PROMPT = ">>> ";
+const QColor Console::NORMAL_COLOR = QColor::fromRgbF( 0, 0, 0 );
+const QColor Console::ERROR_COLOR = QColor::fromRgbF( 1.0, 0, 0 );
+const QColor Console::OUTPUT_COLOR = QColor::fromRgbF( 0, 0, 1.0 );
 
 Console::Console( QWidget* parent ):
-    QTextEdit( parent )
+    QTextEdit( parent ),
+    m_interpreter( new Interpreter )
 {
     displayPrompt( );
+}
+
+Console::~Console( )
+{
+    delete m_interpreter;
 }
 
 void Console::keyPressEvent( QKeyEvent* e )
@@ -39,14 +47,37 @@ void Console::handleReturnKeyPress( )
     QString line = getLine( );
     if ( line != "" )
     {
-        // TODO: Feed line to the python interpreter
-
-        // TODO: Append the interpreter output to console
         std::cout << line.toStdString( ) << "\n";
+
+        // TODO: Feed line to the python interpreter
+        int errorCode;
+        std::string res = m_interpreter->interpret( line.toStdString( ), &errorCode );
+        if ( errorCode )
+        {
+            setTextColor( ERROR_COLOR );
+        }
+        else
+        {
+            setTextColor( OUTPUT_COLOR );
+        }
+
+        std::cout << res << "\n";
+        if ( res.size( ) )
+        {
+            if ( ! errorCode )
+            append("");
+            append(res.c_str());
+        }
+
+        setTextColor( NORMAL_COLOR );
 
         // set up the next line on the console
         append("");
         displayPrompt( );
+    }
+    else
+    {
+        m_interpreter->test( );
     }
 }
 
@@ -99,5 +130,3 @@ void Console::displayPrompt( )
     cursor.insertText( Console::PROMPT );
     cursor.movePosition( QTextCursor::EndOfLine );
 }
-
-} // namespace atsui

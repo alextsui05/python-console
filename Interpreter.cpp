@@ -42,6 +42,7 @@ Interpreter::test( )
     if ( py_result == 0 )
     {
         std::cout << "Huh?\n";
+        PyEval_ReleaseThread( m_threadState );
         return;
     }
     dum = PyEval_EvalCode ((PyCodeObject *)py_result, glb, loc);
@@ -64,6 +65,7 @@ Interpreter::interpret( const std::string& command, int* errorCode )
     if ( py_result == 0 )
     {
         std::cout << "Huh?\n";
+        PyEval_ReleaseThread( m_threadState );
         return "";
     }
     dum = PyEval_EvalCode ((PyCodeObject *)py_result, glb, loc);

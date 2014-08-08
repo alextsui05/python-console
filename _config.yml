@@ -10,7 +10,7 @@ title:            python-console
 tagline:          An interpreter in a widget
 url:              http://alextsui05.github.io
 paginate:         1
-baseurl:          /python-console
+baseurl:          /python-console/
 author:
   name:           Alex Tsui
   url:            https://twitter.com/alextsui

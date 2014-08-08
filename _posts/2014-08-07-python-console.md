@@ -7,4 +7,4 @@ title: python-console
 
 ![A simple demo]({{ site.baseurl }}/assets/capture.gif)
 
-Check out the [repo]({{ github.repo }}) for more details.
+Check out the [repo]({{ site.github.repo }}) for more details.

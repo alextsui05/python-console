@@ -56,6 +56,8 @@ public:
 public:
     void process( const std::string& str );
 
+    bool buffered( ) const;
+
     /**
     Generate a parse event from the current command buffer.
     */

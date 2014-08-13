@@ -47,6 +47,7 @@ protected:
     void displayPrompt( );
 
     static const QString PROMPT;
+    static const QString MULTILINE_PROMPT;
 
     static const QColor NORMAL_COLOR;
     static const QColor ERROR_COLOR;

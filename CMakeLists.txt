@@ -18,3 +18,13 @@ add_executable( test_parse_helper test_parse_helper.cpp
     ParseListener.cpp
     ParseMessage.cpp
 )
+
+add_executable( test_cli test_cli.cpp 
+    ParseHelper.cpp
+    ParseListener.cpp
+    ParseMessage.cpp
+    Interpreter.cpp
+)
+target_link_libraries( test_cli
+    ${PYTHON_LIBRARIES}
+)

@@ -87,8 +87,13 @@ void ParseHelper::process( const std::string& str )
         bool isIndented = PeekIndent( str, &ind );
         if ( !isIndented )
         {
+#ifndef NDEBUG
             std::cout << "Expected indented block\n";
-            exit( 1 );
+#endif
+            reset( );
+            ParseMessage msg( 1, "IndentationError: expected an indented block" );
+            broadcast( msg );
+            return;
         }
         currentIndent = ind;
         indentStack.push_back( currentIndent );
@@ -118,8 +123,13 @@ void ParseHelper::process( const std::string& str )
 
                 if ( ! found )
                 {
+#ifndef NDEBUG
                     std::cout << "indent mismatch\n";
-                    exit( 1 );
+#endif
+                    reset( );
+                    ParseMessage msg( 1, "IndentationError: unexpected indent");
+                    broadcast( msg );
+                    return;
                 }
             }
 
@@ -151,6 +161,18 @@ void ParseHelper::process( const std::string& str )
     if ( !str.size() )
         return;
 
+    { // check for unexpected indent
+        Indent ind;
+        bool isIndented = PeekIndent( str, &ind );
+        if ( isIndented )
+        {
+            reset( );
+            ParseMessage msg( 1, "IndentationError: unexpected indent");
+            broadcast( msg );
+            return;
+        }
+    }
+
     // enter indented block state
     if ( str[str.size()-1] == ':' )
     {
@@ -163,6 +185,11 @@ void ParseHelper::process( const std::string& str )
     // handle single-line statement
     commandBuffer.push_back( str );
     flush( );
+}
+
+bool ParseHelper::buffered( ) const
+{
+    return commandBuffer.size( );
 }
 
 void ParseHelper::flush( )
@@ -204,7 +231,7 @@ void ParseHelper::broadcast( const ParseMessage& msg )
     {
         if (listeners[i])
         {
-            listeners[i]->parseEvent(msg.message);
+            listeners[i]->parseEvent(msg);
         }
     }
 }

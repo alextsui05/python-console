@@ -5,6 +5,7 @@
 #include <QKeyEvent>
 
 const QString Console::PROMPT = ">>> ";
+const QString Console::MULTILINE_PROMPT = "... ";
 const QColor Console::NORMAL_COLOR = QColor::fromRgbF( 0, 0, 0 );
 const QColor Console::ERROR_COLOR = QColor::fromRgbF( 1.0, 0, 0 );
 const QColor Console::OUTPUT_COLOR = QColor::fromRgbF( 0, 0, 1.0 );

@@ -14,6 +14,7 @@ Console::Console( QWidget* parent ):
     QTextEdit( parent ),
     m_interpreter( new Interpreter )
 {
+    m_parseHelper.subscribe( this );
     displayPrompt( );
 }
 
@@ -46,40 +47,56 @@ void Console::handleReturnKeyPress( )
     }
 
     QString line = getLine( );
-    if ( line != "" )
+
+#ifndef NDEBUG
+    std::cout << line.toStdString( ) << "\n";
+#endif
+
+    m_parseHelper.process( line.toStdString( ) );
+    if ( m_parseHelper.buffered( ) )
     {
-        std::cout << line.toStdString( ) << "\n";
-
-        // TODO: Feed line to the python interpreter
-        int errorCode;
-        std::string res = m_interpreter->interpret( line.toStdString( ), &errorCode );
-        if ( errorCode )
-        {
-            setTextColor( ERROR_COLOR );
-        }
-        else
-        {
-            setTextColor( OUTPUT_COLOR );
-        }
-
-        std::cout << res << "\n";
-        if ( res.size( ) )
-        {
-            if ( ! errorCode )
-            append("");
-            append(res.c_str());
-        }
-
-        setTextColor( NORMAL_COLOR );
-
-        // set up the next line on the console
         append("");
         displayPrompt( );
     }
+}
+
+void Console::parseEvent( const ParseMessage& message )
+{
+    // handle invalid user input
+    if ( message.errorCode )
+    {
+        setTextColor( ERROR_COLOR );
+        append(message.message.c_str());
+
+        setTextColor( NORMAL_COLOR );
+        append("");
+        displayPrompt( );
+        return;
+    }
+
+    // interpret valid user input
+    int errorCode;
+    std::string res =
+        m_interpreter->interpret( message.message, &errorCode );
+    if ( errorCode )
+    {
+        setTextColor( ERROR_COLOR );
+    }
     else
     {
-        m_interpreter->test( );
+        setTextColor( OUTPUT_COLOR );
     }
+
+    if ( res.size( ) )
+    {
+        append(res.c_str());
+    }
+
+    setTextColor( NORMAL_COLOR );
+
+    // set up the next line on the console
+    append("");
+    displayPrompt( );
 }
 
 QString Console::getLine( )
@@ -128,6 +145,13 @@ bool Console::canBackspace( )
 void Console::displayPrompt( )
 {
     QTextCursor cursor = textCursor();
-    cursor.insertText( Console::PROMPT );
+    if ( m_parseHelper.buffered( ) )
+    {
+        cursor.insertText( Console::MULTILINE_PROMPT );
+    }
+    else
+    {
+        cursor.insertText( Console::PROMPT );
+    }
     cursor.movePosition( QTextCursor::EndOfLine );
 }

@@ -21,12 +21,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #define ATSUI_CONSOLE_H
 #include <QTextEdit>
 #include <QColor>
+#include "ParseHelper.h"
+#include "ParseListener.h"
 
 class QWidget;
 class QKeyEvent;
 class Interpreter;
 
-class Console : public QTextEdit
+class Console : public QTextEdit, ParseListener
 {
     Q_OBJECT
 
@@ -39,6 +41,11 @@ protected:
     virtual void keyPressEvent( QKeyEvent* e );
 
     virtual void handleReturnKeyPress( );
+
+    /**
+    Handle a compilable chunk of Python user input.
+    */
+    virtual void parseEvent( const ParseMessage& message );
 
     QString getLine( );
     bool cursorIsOnInputLine( );
@@ -54,6 +61,7 @@ protected:
     static const QColor OUTPUT_COLOR;
 
     Interpreter* m_interpreter;
+    ParseHelper m_parseHelper;
 };
 
 #endif // ATSUI_CONSOLE_H

@@ -10,7 +10,12 @@ add_executable( test_python_interpreter test_python_interpreter.cpp Interpreter.
 target_link_libraries( test_python_interpreter ${PYTHON_LIBRARIES} )
 
 qt4_wrap_cpp( Console_MOC Console.h )
-add_executable( test_console test_console.cpp Console.cpp ${Console_MOC} Interpreter.cpp )
+add_executable( test_console test_console.cpp
+    Console.cpp ${Console_MOC}
+    Interpreter.cpp
+    ParseHelper.cpp
+    ParseMessage.cpp
+)
 target_link_libraries( test_console ${QT_LIBRARIES} ${PYTHON_LIBRARIES} )
 
 add_executable( test_parse_helper test_parse_helper.cpp 

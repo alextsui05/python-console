@@ -24,6 +24,7 @@ THE SOFTWARE.
 #define PARSE_HELPER_H
 #include <string>
 #include <vector>
+#include <boost/shared_ptr.hpp>
 #include "ParseMessage.h"
 
 class ParseListener;
@@ -37,15 +38,41 @@ public:
     struct Indent
     {
         std::string Token;
+        Indent( );
+        Indent( const std::string& indent );
     };
 
+    struct ParseState
+    {
+        ParseHelper& parent;
+        ParseState( ParseHelper& parent_ );
+        virtual ~ParseState( );
+        virtual bool process(const std::string& str) = 0;
+    };
+
+    struct BlockParseState : public ParseState
+    {
+        Indent indent;
+
+        BlockParseState( ParseHelper& parent );
+        BlockParseState( ParseHelper& parent, const std::string& indent_ );
+
+        // return whether processing is finished
+        virtual bool process(const std::string& str);
+
+        // return if there was an error
+        bool initializeIndent(const std::string& str);
+    };
+    friend class BlockParseState;
+
 protected:
-    bool inBlock;
+    //bool inBlock;
     bool inContinuation;
-    bool expectingIndent;
-    std::vector< Indent > indentStack;
+    //bool expectingIndent;
+    //std::vector< Indent > indentStack;
     std::vector< ParseListener* > listeners;
-    Indent currentIndent;
+    std::vector< boost::shared_ptr< ParseState > > stateStack;
+    //Indent currentIndent;
     std::vector< std::string > commandBuffer;
 
 public:

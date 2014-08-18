@@ -73,6 +73,7 @@ bool ParseHelper::PeekIndent( const std::string& str, Indent* indent )
 
 ParseHelper::ParseHelper( ):
     inBlock( false ),
+    inContinuation( false ),
     expectingIndent( false )
 { }
 
@@ -164,7 +165,8 @@ void ParseHelper::process( const std::string& str )
     { // check for unexpected indent
         Indent ind;
         bool isIndented = PeekIndent( str, &ind );
-        if ( isIndented )
+        if ( isIndented &&
+            ! inContinuation )
         {
             reset( );
             ParseMessage msg( 1, "IndentationError: unexpected indent");
@@ -179,6 +181,13 @@ void ParseHelper::process( const std::string& str )
         commandBuffer.push_back( str );
         inBlock = true;
         expectingIndent = true;
+        return;
+    }
+
+    if ( str[str.size()-1] == '\\' )
+    {
+        commandBuffer.push_back( str );
+        inContinuation = true;
         return;
     }
 
@@ -208,6 +217,7 @@ void ParseHelper::flush( )
 void ParseHelper::reset( )
 {
     inBlock = false;
+    inContinuation = false;
     expectingIndent = false;
     indentStack.clear( );
     currentIndent.Token = "";

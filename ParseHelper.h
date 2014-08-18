@@ -41,6 +41,7 @@ public:
 
 protected:
     bool inBlock;
+    bool inContinuation;
     bool expectingIndent;
     std::vector< Indent > indentStack;
     std::vector< ParseListener* > listeners;

@@ -42,14 +42,33 @@ public:
         Indent( const std::string& indent );
     };
 
+    /**
+    Handle different states of parsing. Subclasses override
+    process(const std::string&) to handle different types of multiline
+    statements.
+    */
     struct ParseState
     {
         ParseHelper& parent;
         ParseState( ParseHelper& parent_ );
         virtual ~ParseState( );
+
+        /**
+        Processes a single line of user input.
+
+        \return whether processing of the line is done.
+        */
         virtual bool process(const std::string& str) = 0;
     };
 
+    /**
+    Handle parsing a multiline indented block. Example of such a block:
+
+        for i in range(10):
+            print i
+            print i*i
+
+    */
     struct BlockParseState : public ParseState
     {
         Indent indent;
@@ -66,13 +85,10 @@ public:
     friend class BlockParseState;
 
 protected:
-    //bool inBlock;
+    // TODO: Create a ContinuationParseState to handle this
     bool inContinuation;
-    //bool expectingIndent;
-    //std::vector< Indent > indentStack;
     std::vector< ParseListener* > listeners;
     std::vector< boost::shared_ptr< ParseState > > stateStack;
-    //Indent currentIndent;
     std::vector< std::string > commandBuffer;
 
 public:

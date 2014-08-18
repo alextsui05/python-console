@@ -14,18 +14,21 @@ add_executable( test_console test_console.cpp
     Console.cpp ${Console_MOC}
     Interpreter.cpp
     ParseHelper.cpp
+    ParseHelper.BlockParseState.cpp
     ParseMessage.cpp
 )
 target_link_libraries( test_console ${QT_LIBRARIES} ${PYTHON_LIBRARIES} )
 
 add_executable( test_parse_helper test_parse_helper.cpp 
     ParseHelper.cpp
+    ParseHelper.BlockParseState.cpp
     ParseListener.cpp
     ParseMessage.cpp
 )
 
 add_executable( test_cli test_cli.cpp 
     ParseHelper.cpp
+    ParseHelper.BlockParseState.cpp
     ParseListener.cpp
     ParseMessage.cpp
     Interpreter.cpp

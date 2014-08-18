@@ -65,132 +65,6 @@ ParseHelper::ParseState::
 ~ParseState( )
 { }
 
-ParseHelper::BlockParseState::
-BlockParseState( ParseHelper& parent ):
-    ParseState( parent )
-{ }
-
-ParseHelper::BlockParseState::
-BlockParseState( ParseHelper& parent, const std::string& indent_ ):
-    ParseState( parent ),
-    indent( indent_ )
-{ }
-
-bool ParseHelper::BlockParseState::
-process(const std::string& str)
-{
-    bool ok = initializeIndent(str);
-    if ( ! ok )
-    {
-        // finish processing
-        return true;
-    }
-
-    Indent ind;
-    bool isIndented = PeekIndent( str, &ind );
-    if ( isIndented )
-    {
-#ifndef NDEBUG
-        std::cout << "current line indent: ";
-        print( ind );
-#endif
-        // check if indent matches
-        if ( ind.Token != indent.Token )
-        {
-            // dedent until we match or empty the stack
-            bool found = false;
-            //while ( !found && indentStack.size( ) )
-            while ( !found )
-            {
-                //currentIndent.Token = indentStack.back( ).Token;
-                //indentStack.pop_back( );
-
-                parent.stateStack.pop_back( );
-                if ( !parent.stateStack.size( ) )
-                    break;
-                boost::shared_ptr<BlockParseState> parseState =
-                    boost::dynamic_pointer_cast<BlockParseState>(
-                        parent.stateStack.back( ));
-                //parent.currentIndent.Token = parseState->indent.Token;
-                found = ( ind.Token == parseState->indent.Token );
-            }
-
-            if ( ! found )
-            {
-#ifndef NDEBUG
-                std::cout << "indent mismatch\n";
-#endif
-                parent.reset( );
-                ParseMessage msg( 1, "IndentationError: unexpected indent");
-                parent.broadcast( msg );
-                return true;
-            }
-        }
-
-        // process command
-
-        // enter indented block state
-        if ( str[str.size()-1] == ':' )
-        {
-            parent.commandBuffer.push_back( str );
-            //parent.inBlock = (boost::dynamic_pointer_cast<BlockParseState>(
-            //    parent.stateStack.back()));
-
-            //expectingIndent = true;
-            boost::shared_ptr<ParseState> parseState(
-                new BlockParseState( parent ) );
-            parent.stateStack.push_back( parseState );
-            return true;
-        }
-
-        parent.commandBuffer.push_back( str );
-        return true;
-    }
-    else
-    {
-#ifndef NDEBUG
-        std::cout << "Leaving block\n";
-#endif
-        parent.flush( );
-        parent.reset( );
-        return false;
-    }
-}
-
-bool ParseHelper::BlockParseState::
-initializeIndent(const std::string& str)
-{
-    bool expectingIndent = (indent.Token == "");
-    if ( !expectingIndent )
-    {
-        std::cout << "already initialized indent: ";
-        print( indent );
-        return true;
-    }
-
-    Indent ind;
-    bool isIndented = parent.PeekIndent( str, &ind );
-    if ( !isIndented )
-    {
-#ifndef NDEBUG
-        std::cout << "Expected indented block\n";
-#endif
-        parent.reset( );
-        ParseMessage msg( 1, "IndentationError: expected an indented block" );
-        parent.broadcast( msg );
-        return false;
-    }
-    indent = ind;
-    //parent.currentIndent = ind;
-    //parent.indentStack.push_back( parent.currentIndent );
-    //parent.expectingIndent = false;
-#ifndef NDEBUG
-    std::cout << "initializing indent: ";
-    print( ind );
-#endif
-    return true;
-}
-
 bool ParseHelper::PeekIndent( const std::string& str, Indent* indent )
 {
     if ( !str.size() || ! isspace(str[0]) )
@@ -215,9 +89,7 @@ bool ParseHelper::PeekIndent( const std::string& str, Indent* indent )
 }
 
 ParseHelper::ParseHelper( ):
-    //inBlock( false ),
     inContinuation( false )
-    //expectingIndent( false )
 { }
 
 void ParseHelper::process( const std::string& str )
@@ -256,8 +128,6 @@ void ParseHelper::process( const std::string& str )
     if ( str[str.size()-1] == ':' )
     {
         commandBuffer.push_back( str );
-        //inBlock = true;
-        //expectingIndent = true;
 
         boost::shared_ptr<ParseState> parseState(
             new BlockParseState( *this ) );
@@ -297,12 +167,8 @@ void ParseHelper::flush( )
 
 void ParseHelper::reset( )
 {
-    //inBlock = false;
     inContinuation = false;
-    //expectingIndent = false;
-    //indentStack.clear( );
     stateStack.clear( );
-    //currentIndent.Token = "";
     commandBuffer.clear( );
 }
 

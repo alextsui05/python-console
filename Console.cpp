@@ -76,8 +76,9 @@ void Console::parseEvent( const ParseMessage& message )
 
     // interpret valid user input
     int errorCode;
-    std::string res =
-        m_interpreter->interpret( message.message, &errorCode );
+    std::string res;
+    if ( message.message.size() )
+        res = m_interpreter->interpret( message.message, &errorCode );
     if ( errorCode )
     {
         setTextColor( ERROR_COLOR );

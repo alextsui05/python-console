@@ -94,6 +94,15 @@ process(const std::string& str)
             return true;
         }
 
+        if ( str[str.size()-1] == '\\' )
+        {
+            parent.commandBuffer.push_back( str );
+            boost::shared_ptr<ParseState> parseState(
+                new ContinuationParseState( parent ) );
+            parent.stateStack.push_back( parseState );
+            return true;
+        }
+
         parent.commandBuffer.push_back( str );
         return true;
     }

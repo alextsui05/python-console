@@ -97,26 +97,31 @@ void ParseHelper::process( const std::string& str )
     std::cout << "processing: (" << str << ")\n";
 #endif
 
-
+    std::string top;
+    commandBuffer.push_back(str);
+    //std::string top = commandBuffer.back();
+    //commandBuffer.pop_back();
     boost::shared_ptr<ParseState> blockStatePtr;
-    if (stateStack.size())
+    while (stateStack.size())
     {
+        top = commandBuffer.back();
+        commandBuffer.pop_back();
         blockStatePtr = stateStack.back();
-        if (blockStatePtr->process(str))
+        if (blockStatePtr->process(top))
             return;
-    }
-    else
-    {
-        commandBuffer.push_back(str);
     }
 
     if ( ! commandBuffer.size() )
         return;
 
     // standard state
-    std::string top = commandBuffer.back();
+    top = commandBuffer.back();
     if ( !top.size() )
+    {
+        reset( );
+        broadcast( std::string() );
         return;
+    }
 #ifndef NDEBUG
     std::cout << "now processing: (" << top << ")\n";
 #endif

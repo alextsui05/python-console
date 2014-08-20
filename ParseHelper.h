@@ -56,9 +56,20 @@ public:
         /**
         Processes a single line of user input.
 
+        Subclasses should return false if further processing should be done. In
+        this case, the command buffer should be topped by the next statement to
+        parse.
+
         \return whether processing of the line is done.
         */
         virtual bool process(const std::string& str) = 0;
+    };
+
+    struct ContinuationParseState : public ParseState
+    {
+        using ParseState::parent;
+        ContinuationParseState( ParseHelper& parent_ );
+        virtual bool process( const std::string& str);
     };
 
     /**
@@ -111,6 +122,8 @@ public:
     Reset the state of the helper.
     */
     void reset( );
+
+    bool isInContinuation( ) const;
 
     void subscribe( ParseListener* listener );
     void unsubscribeAll( );

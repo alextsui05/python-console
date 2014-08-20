@@ -104,7 +104,7 @@ process(const std::string& str)
 #endif
         parent.flush( );
         parent.reset( );
-        return false;
+        return true;
     }
 }
 

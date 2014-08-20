@@ -88,8 +88,7 @@ bool ParseHelper::PeekIndent( const std::string& str, Indent* indent )
     return true;
 }
 
-ParseHelper::ParseHelper( ):
-    inContinuation( false )
+ParseHelper::ParseHelper( )
 { }
 
 void ParseHelper::process( const std::string& str )
@@ -98,24 +97,35 @@ void ParseHelper::process( const std::string& str )
     std::cout << "processing: (" << str << ")\n";
 #endif
 
-    boost::shared_ptr<BlockParseState> blockStatePtr;
-    if (stateStack.size()
-        && (blockStatePtr = boost::dynamic_pointer_cast<BlockParseState>(
-            stateStack.back())))
+
+    boost::shared_ptr<ParseState> blockStatePtr;
+    if (stateStack.size())
     {
+        blockStatePtr = stateStack.back();
         if (blockStatePtr->process(str))
             return;
     }
+    else
+    {
+        commandBuffer.push_back(str);
+    }
+
+    if ( ! commandBuffer.size() )
+        return;
 
     // standard state
-    if ( !str.size() )
+    std::string top = commandBuffer.back();
+    if ( !top.size() )
         return;
+#ifndef NDEBUG
+    std::cout << "now processing: (" << top << ")\n";
+#endif
 
     { // check for unexpected indent
         Indent ind;
-        bool isIndented = PeekIndent( str, &ind );
+        bool isIndented = PeekIndent( top, &ind );
         if ( isIndented &&
-            ! inContinuation )
+            ! isInContinuation( ) )
         {
             reset( );
             ParseMessage msg( 1, "IndentationError: unexpected indent");
@@ -125,25 +135,23 @@ void ParseHelper::process( const std::string& str )
     }
 
     // enter indented block state
-    if ( str[str.size()-1] == ':' )
+    if ( top[top.size()-1] == ':' )
     {
-        commandBuffer.push_back( str );
-
         boost::shared_ptr<ParseState> parseState(
             new BlockParseState( *this ) );
         stateStack.push_back( parseState );
         return;
     }
 
-    if ( str[str.size()-1] == '\\' )
+    if ( top[top.size()-1] == '\\' )
     {
-        commandBuffer.push_back( str );
-        inContinuation = true;
+        boost::shared_ptr<ParseState> parseState(
+            new ContinuationParseState( *this ) );
+        stateStack.push_back( parseState );
         return;
     }
 
     // handle single-line statement
-    commandBuffer.push_back( str );
     flush( );
 }
 
@@ -167,9 +175,16 @@ void ParseHelper::flush( )
 
 void ParseHelper::reset( )
 {
-    inContinuation = false;
+//    inContinuation = false;
     stateStack.clear( );
     commandBuffer.clear( );
+}
+
+bool ParseHelper::isInContinuation( ) const
+{
+    return (stateStack.size()
+        && (boost::dynamic_pointer_cast<ContinuationParseState>(
+            stateStack.back())));
 }
 
 void ParseHelper::subscribe( ParseListener* listener )

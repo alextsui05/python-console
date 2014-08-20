@@ -24,9 +24,10 @@ Interpreter::Interpreter( )
 
 Interpreter::~Interpreter( )
 {
-    PyEval_AcquireThread( m_threadState );
+#ifndef NDEBUG
     std::cout << "delete interpreter\n";
-
+#endif
+    PyEval_AcquireThread( m_threadState );
     Py_EndInterpreter( m_threadState );
     PyEval_ReleaseLock( );
 }
@@ -64,13 +65,26 @@ Interpreter::interpret( const std::string& command, int* errorCode )
 
     PyObject* py_result;
     PyObject* dum;
+    std::string res;
+#ifndef NDEBUG
     std::cout << "interpreting (" << command << ")\n";
+#endif
     py_result = Py_CompileString(command.c_str(), "<stdin>", Py_single_input);
     if ( py_result == 0 )
     {
+#ifndef NDEBUG
         std::cout << "Huh?\n";
+#endif
+        if ( PyErr_Occurred( ) )
+        {
+            *errorCode = 1;
+            PyErr_Print( );
+            res = GetResultString( m_threadState );
+            GetResultString( m_threadState ) = "";
+        }
+
         PyEval_ReleaseThread( m_threadState );
-        return "";
+        return res;
     }
     dum = PyEval_EvalCode ((PyCodeObject *)py_result, glb, loc);
     Py_XDECREF (dum);
@@ -81,7 +95,7 @@ Interpreter::interpret( const std::string& command, int* errorCode )
         PyErr_Print( );
     }
 
-    std::string res = GetResultString( m_threadState );
+    res = GetResultString( m_threadState );
     GetResultString( m_threadState ) = "";
 
     PyEval_ReleaseThread( m_threadState );

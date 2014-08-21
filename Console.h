@@ -52,6 +52,7 @@ protected:
     bool inputLineIsEmpty( );
     bool canBackspace( );
     void displayPrompt( );
+    void autocomplete( );
 
     static const QString PROMPT;
     static const QString MULTILINE_PROMPT;

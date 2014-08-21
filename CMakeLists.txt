@@ -12,6 +12,7 @@ target_link_libraries( test_python_interpreter ${PYTHON_LIBRARIES} )
 qt4_wrap_cpp( Console_MOC Console.h )
 add_executable( test_console test_console.cpp
     Console.cpp ${Console_MOC}
+    ColumnFormatter.cpp
     Interpreter.cpp
     ParseHelper.cpp
     ParseHelper.BlockParseState.cpp

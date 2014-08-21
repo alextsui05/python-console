@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef INTERPRETER_H
 #define INTERPRETER_H
 #include <string>
+#include <list>
 #include <Python.h>
 #if defined(__APPLE__) && defined(__MACH__)
 /*
@@ -58,6 +59,8 @@ protected:
     PyObject* glb;
     PyObject* loc;
 
+    std::list< std::string > m_suggestions;
+
 public:
     /**
     Instantiate a Python interpreter.
@@ -67,6 +70,7 @@ public:
 
     void test( );
     std::string interpret( const std::string& command, int* errorCode );
+    const std::list<std::string>& suggest( const std::string& hint );
 
     /**
     Call this before constructing and using Interpreter.

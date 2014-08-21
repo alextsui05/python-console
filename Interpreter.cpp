@@ -1,6 +1,7 @@
 #include "Interpreter.h"
 #include <iostream>
 #include <map>
+#include <boost/format.hpp>
 
 PyThreadState* Interpreter::MainThreadState = NULL;
 
@@ -17,6 +18,8 @@ Interpreter::Interpreter( )
         "sys.path.insert(0, \".\")\n" // add current path
         "sys.stdout = redirector.redirector()\n"
         "sys.stderr = sys.stdout\n"
+        "import rlcompleter\n"
+        "sys.completer = rlcompleter.Completer()\n"
     );
 
     PyEval_ReleaseThread( m_threadState );
@@ -100,6 +103,47 @@ Interpreter::interpret( const std::string& command, int* errorCode )
 
     PyEval_ReleaseThread( m_threadState );
     return res;
+}
+
+const std::list<std::string>& Interpreter::suggest( const std::string& hint )
+{
+    PyEval_AcquireThread( m_threadState );
+    m_suggestions.clear();
+    int i = 0;
+    std::string command = boost::str(
+        boost::format("sys.completer.complete('%1%', %2%)\n")
+            % hint
+            % i);
+#ifndef NDEBUG
+    std::cout << command << "\n";
+#endif
+    std::string res;
+    do
+    {
+        PyObject* py_result;
+        PyObject* dum;
+        py_result = Py_CompileString(command.c_str(), "<stdin>", Py_single_input);
+        dum = PyEval_EvalCode ((PyCodeObject *)py_result, glb, loc);
+        Py_XDECREF (dum);
+        Py_XDECREF (py_result);
+        res = GetResultString( m_threadState );
+        GetResultString( m_threadState ) = "";
+        ++i;
+        command = boost::str(
+        boost::format("sys.completer.complete('%1%', %2%)\n")
+            % hint
+            % i);
+        if (res.size())
+        {
+            // throw away the newline
+            res = res.substr(0, res.size() - 1);
+            m_suggestions.push_back(res);
+        }
+    }
+    while (res.size());
+
+    PyEval_ReleaseThread( m_threadState );
+    return m_suggestions;
 }
 
 void

@@ -1,8 +1,10 @@
 #include "Console.h"
 #include "Interpreter.h"
+#include "ColumnFormatter.h"
 
 #include <iostream>
 #include <QKeyEvent>
+#include <QFont>
 
 const QString Console::PROMPT = ">>> ";
 const QString Console::MULTILINE_PROMPT = "... ";
@@ -14,6 +16,9 @@ Console::Console( QWidget* parent ):
     QTextEdit( parent ),
     m_interpreter( new Interpreter )
 {
+    QFont font;
+    font.setFamily("Courier New");
+    setFont(font);
     m_parseHelper.subscribe( this );
     displayPrompt( );
 }
@@ -29,6 +34,10 @@ void Console::keyPressEvent( QKeyEvent* e )
     {
         case Qt::Key_Return:
             handleReturnKeyPress( );
+            return;
+
+        case Qt::Key_Tab:
+            autocomplete( );
             return;
 
         case Qt::Key_Backspace:
@@ -155,4 +164,26 @@ void Console::displayPrompt( )
         cursor.insertText( Console::PROMPT );
     }
     cursor.movePosition( QTextCursor::EndOfLine );
+}
+
+void Console::autocomplete( )
+{
+    QString line = getLine( );
+    const std::list<std::string>& suggestions =
+        m_interpreter->suggest( line.toStdString( ) );
+    ColumnFormatter fmt;
+    fmt.setItems(suggestions.begin(), suggestions.end());
+    fmt.format(width() / 10);
+    setTextColor( OUTPUT_COLOR );
+    const std::list<std::string>& formatted = fmt.formattedOutput();
+    for (std::list<std::string>::const_iterator it = formatted.begin();
+        it != formatted.end(); ++it)
+    {
+        append(it->c_str());
+    }
+    std::cout << width() << "\n";
+    setTextColor( NORMAL_COLOR );
+    // set up the next line on the console
+    append("");
+    displayPrompt( );
 }

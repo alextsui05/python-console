@@ -136,7 +136,7 @@ const std::list<std::string>& Interpreter::suggest( const std::string& hint )
         if (res.size())
         {
             // throw away the newline
-            res = res.substr(0, res.size() - 1);
+            res = res.substr(1, res.size() - 3);
             m_suggestions.push_back(res);
         }
     }

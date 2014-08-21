@@ -168,22 +168,35 @@ void Console::displayPrompt( )
 
 void Console::autocomplete( )
 {
+    if ( ! cursorIsOnInputLine( ) )
+        return;
+
     QString line = getLine( );
     const std::list<std::string>& suggestions =
         m_interpreter->suggest( line.toStdString( ) );
-    ColumnFormatter fmt;
-    fmt.setItems(suggestions.begin(), suggestions.end());
-    fmt.format(width() / 10);
-    setTextColor( OUTPUT_COLOR );
-    const std::list<std::string>& formatted = fmt.formattedOutput();
-    for (std::list<std::string>::const_iterator it = formatted.begin();
-        it != formatted.end(); ++it)
+    if (suggestions.size() == 1)
     {
-        append(it->c_str());
+        line = suggestions.back().c_str();
     }
-    std::cout << width() << "\n";
-    setTextColor( NORMAL_COLOR );
+    else
+    {
+        ColumnFormatter fmt;
+        fmt.setItems(suggestions.begin(), suggestions.end());
+        fmt.format(width() / 10);
+        setTextColor( OUTPUT_COLOR );
+        const std::list<std::string>& formatted = fmt.formattedOutput();
+        for (std::list<std::string>::const_iterator it = formatted.begin();
+            it != formatted.end(); ++it)
+        {
+            append(it->c_str());
+        }
+        std::cout << width() << "\n";
+        setTextColor( NORMAL_COLOR );
+    }
+
     // set up the next line on the console
     append("");
     displayPrompt( );
+    QTextCursor cursor = textCursor( );
+    cursor.insertText( line );
 }

@@ -43,6 +43,19 @@ void Console::keyPressEvent( QKeyEvent* e )
         case Qt::Key_Backspace:
             if ( ! canBackspace( ) )
                 return;
+            break;
+
+        case Qt::Key_Up:
+            previousHistory( );
+            return;
+
+        case Qt::Key_Down:
+            nextHistory( );
+            return;
+
+        case Qt::Key_Left:
+            if ( ! canGoLeft( ) )
+                return;
     }
 
     QTextEdit::keyPressEvent( e );
@@ -66,6 +79,11 @@ void Console::handleReturnKeyPress( )
     {
         append("");
         displayPrompt( );
+    }
+    if ( line.size( ) )
+    {
+        m_historyBuffer.push_back( line.toStdString( ) );
+        m_historyIt = m_historyBuffer.end();
     }
 }
 
@@ -152,6 +170,17 @@ bool Console::canBackspace( )
     return true;
 }
 
+bool Console::canGoLeft( )
+{
+    if ( cursorIsOnInputLine( ) )
+    {
+        QTextCursor bottomCursor = textCursor( );
+        int col = bottomCursor.columnNumber( );
+        return (col > Console::PROMPT.size( ));
+    }
+    return true;
+}
+
 void Console::displayPrompt( )
 {
     QTextCursor cursor = textCursor();
@@ -199,4 +228,48 @@ void Console::autocomplete( )
     displayPrompt( );
     QTextCursor cursor = textCursor( );
     cursor.insertText( line );
+}
+
+void Console::previousHistory( )
+{
+    if ( ! cursorIsOnInputLine( ) )
+        return;
+
+    if ( ! m_historyBuffer.size( ) )
+        return;
+
+    QTextCursor cursor = textCursor();
+    cursor.movePosition( QTextCursor::StartOfLine );
+    cursor.movePosition( QTextCursor::Right, QTextCursor::MoveAnchor, Console::PROMPT.size( ) );
+    cursor.movePosition( QTextCursor::EndOfLine, QTextCursor::KeepAnchor );
+    cursor.removeSelectedText( );
+    if ( m_historyIt != m_historyBuffer.begin( ) )
+    {
+        --m_historyIt;
+    }
+    cursor.insertText( m_historyIt->c_str() );
+}
+
+void Console::nextHistory( )
+{
+    if ( ! cursorIsOnInputLine( ) )
+        return;
+
+    if ( ! m_historyBuffer.size( ) )
+        return;
+    if ( m_historyIt == m_historyBuffer.end( ) )
+    {
+        return;
+    }
+    QTextCursor cursor = textCursor();
+    cursor.movePosition( QTextCursor::StartOfLine );
+    cursor.movePosition( QTextCursor::Right, QTextCursor::MoveAnchor, Console::PROMPT.size( ) );
+    cursor.movePosition( QTextCursor::EndOfLine, QTextCursor::KeepAnchor );
+    cursor.removeSelectedText( );
+    ++m_historyIt;
+    if ( m_historyIt == m_historyBuffer.end( ) )
+    {
+        return;
+    }
+    cursor.insertText( m_historyIt->c_str() );
 }

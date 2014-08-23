@@ -51,8 +51,11 @@ protected:
     bool cursorIsOnInputLine( );
     bool inputLineIsEmpty( );
     bool canBackspace( );
+    bool canGoLeft( );
     void displayPrompt( );
     void autocomplete( );
+    void previousHistory( );
+    void nextHistory( );
 
     static const QString PROMPT;
     static const QString MULTILINE_PROMPT;
@@ -63,6 +66,8 @@ protected:
 
     Interpreter* m_interpreter;
     ParseHelper m_parseHelper;
+    std::list<std::string> m_historyBuffer;
+    std::list<std::string>::const_iterator m_historyIt;
 };
 
 #endif // ATSUI_CONSOLE_H

@@ -16,6 +16,7 @@ add_executable( test_console test_console.cpp
     Interpreter.cpp
     ParseHelper.cpp
     ParseHelper.BlockParseState.cpp
+    ParseHelper.BracketParseState.cpp
     ParseHelper.ContinuationParseState.cpp
     ParseMessage.cpp
 )

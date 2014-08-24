@@ -156,13 +156,23 @@ void ParseHelper::process( const std::string& str )
         return;
     }
 
+    if (BracketParseState::HasOpenBrackets( top ))
+    {
+        // FIXME: Every parse state should have its own local buffer
+        commandBuffer.pop_back( );
+        boost::shared_ptr<ParseState> parseState(
+            new BracketParseState( *this, top ) );
+        stateStack.push_back( parseState );
+        return;
+    }
+
     // handle single-line statement
     flush( );
 }
 
 bool ParseHelper::buffered( ) const
 {
-    return commandBuffer.size( );
+    return commandBuffer.size( ) || stateStack.size( );
 }
 
 void ParseHelper::flush( )

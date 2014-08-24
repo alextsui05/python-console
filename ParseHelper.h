@@ -24,6 +24,7 @@ THE SOFTWARE.
 #define PARSE_HELPER_H
 #include <string>
 #include <vector>
+#include <list>
 #include <boost/shared_ptr.hpp>
 #include "ParseMessage.h"
 
@@ -94,6 +95,26 @@ public:
         bool initializeIndent(const std::string& str);
     };
     friend class BlockParseState;
+
+    struct BracketParseState : public ParseState
+    {
+        static const std::string OpeningBrackets;
+        static const std::string ClosingBrackets;
+
+        std::list<char> brackets;
+        std::list<std::string> m_buffer;
+
+        /**
+        Return whether open brackets remain unclosed in \a str.
+        */
+        static bool HasOpenBrackets(const std::string& str);
+        static bool LoadBrackets(const std::string& str,
+            std::list<char>* stack);
+
+        BracketParseState( ParseHelper& parent, const std::string& firstLine );
+
+        virtual bool process(const std::string& str);
+    };
 
 protected:
     // TODO: Create a ContinuationParseState to handle this

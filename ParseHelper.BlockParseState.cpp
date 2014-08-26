@@ -103,6 +103,15 @@ process(const std::string& str)
             return true;
         }
 
+        if (BracketParseState::HasOpenBrackets( str ))
+        {
+            // FIXME: Every parse state should have its own local buffer
+            boost::shared_ptr<ParseState> parseState(
+                new BracketParseState( parent, str ) );
+            parent.stateStack.push_back( parseState );
+            return true;
+        }
+
         parent.commandBuffer.push_back( str );
         return true;
     }

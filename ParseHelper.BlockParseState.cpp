@@ -117,9 +117,22 @@ process(const std::string& str)
     }
     else
     {
+        if ( str.size() )
+        {
+            {
+#ifndef NDEBUG
+                std::cout << "Expected indented block\n";
+#endif
+                parent.reset( );
+                ParseMessage msg( 1, "IndentationError: expected an indented block" );
+                parent.broadcast( msg );
+                return false;
+            }
+        }
 #ifndef NDEBUG
         std::cout << "Leaving block\n";
 #endif
+        parent.stateStack.pop_back();
         parent.flush( );
         parent.reset( );
         return true;

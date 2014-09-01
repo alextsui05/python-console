@@ -87,6 +87,9 @@ void Console::handleReturnKeyPress( )
         m_historyBuffer.push_back( line.toStdString( ) );
         m_historyIt = m_historyBuffer.end();
     }
+    QTextCursor cursor = textCursor();
+    cursor.movePosition( QTextCursor::End );
+    setTextCursor( cursor );
 }
 
 void Console::parseEvent( const ParseMessage& message )
@@ -186,6 +189,7 @@ bool Console::canGoLeft( )
 void Console::displayPrompt( )
 {
     QTextCursor cursor = textCursor();
+    cursor.movePosition( QTextCursor::End );
     if ( m_parseHelper.buffered( ) )
     {
         cursor.insertText( Console::MULTILINE_PROMPT );
@@ -239,7 +243,10 @@ void Console::autocomplete( )
     append("");
     displayPrompt( );
     QTextCursor cursor = textCursor( );
+    cursor.movePosition( QTextCursor::End );
     cursor.insertText( line );
+    cursor.movePosition( QTextCursor::End );
+    setTextCursor( cursor );
 }
 
 void Console::previousHistory( )

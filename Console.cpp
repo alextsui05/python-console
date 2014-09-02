@@ -87,9 +87,7 @@ void Console::handleReturnKeyPress( )
         m_historyBuffer.push_back( line.toStdString( ) );
         m_historyIt = m_historyBuffer.end();
     }
-    QTextCursor cursor = textCursor();
-    cursor.movePosition( QTextCursor::End );
-    setTextCursor( cursor );
+    moveCursorToEnd( );
 }
 
 void Console::parseEvent( const ParseMessage& message )
@@ -242,11 +240,9 @@ void Console::autocomplete( )
     // set up the next line on the console
     append("");
     displayPrompt( );
-    QTextCursor cursor = textCursor( );
-    cursor.movePosition( QTextCursor::End );
+    moveCursorToEnd( );
     cursor.insertText( line );
-    cursor.movePosition( QTextCursor::End );
-    setTextCursor( cursor );
+    moveCursorToEnd( );
 }
 
 void Console::previousHistory( )
@@ -291,4 +287,11 @@ void Console::nextHistory( )
         return;
     }
     cursor.insertText( m_historyIt->c_str() );
+}
+
+void Console::moveCursorToEnd( )
+{
+    QTextCursor cursor = textCursor();
+    cursor.movePosition( QTextCursor::End );
+    setTextCursor( cursor );
 }

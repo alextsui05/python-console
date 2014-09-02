@@ -56,6 +56,7 @@ protected:
     void autocomplete( );
     void previousHistory( );
     void nextHistory( );
+    void moveCursorToEnd( );
 
     static const QString PROMPT;
     static const QString MULTILINE_PROMPT;
